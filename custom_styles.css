@@ -1,0 +1,23 @@
+/**
+ * Custom styles for NotebookLM LaTeX Renderer extension.
+ * Highlights rendered KaTeX formulas.
+ */
+
+/* Ziel: Alle von KaTeX gerenderten Formel-Container (inline und display) */
+.katex {
+  background-color: #f0f0f0; /* Hellgrauer Hintergrund */
+  padding: 0.1em 0.3em; /* Etwas Innenabstand (oben/unten | links/rechts) */
+  border-radius: 4px;   /* Leicht abgerundete Ecken */
+  display: inline-block; /* Stellt sicher, dass Padding korrekt angewendet wird, auch für Inline-Elemente */
+  vertical-align: middle; /* Verbessert die Ausrichtung von Inline-Formeln mit umgebendem Text */
+  line-height: normal; /* Verhindert unerwünschte Zeilenhöhenänderungen */
+}
+
+/* Optional: Spezifische Anpassungen nur für Display-Formeln (die in eigenen Zeilen stehen) */
+/* .katex-display { */
+  /* background-color: #e9e9e9; */ /* Etwas anderer Grauton? */
+  /* padding: 0.5em; */            /* Mehr Abstand für Display-Formeln */
+  /* margin-top: 0.5em; */        /* Abstand nach oben */
+  /* margin-bottom: 0.5em; */     /* Abstand nach unten */
+/* } */
+

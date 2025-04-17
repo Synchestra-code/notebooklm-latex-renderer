@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "NotebookLM LaTeX Renderer",
+  "version": "1.1", // Version erhöht
+  "description": "Rendert automatisch LaTeX-Formeln ($...$ und $$...$$) auf notebooklm.google.com mithilfe von KaTeX und hebt sie hervor.",
+  // Der "icons"-Abschnitt wurde entfernt, da keine Icons vorhanden sind.
+  // Du kannst ihn später wieder hinzufügen, wenn du Icons erstellst.
+  // "icons": {
+  //   "48": "icons/icon48.png",
+  //   "128": "icons/icon128.png"
+  // },
+  "content_scripts": [
+    {
+      "matches": ["https://notebooklm.google.com/*"],
+      "css": [
+        "katex/katex.min.css", // KaTeX Standard-Styles
+        "custom_styles.css"    // Eigene Styles hinzufügen
+        ],
+      "js": [
+        "katex/katex.min.js",
+        "katex/auto-render.min.js",
+        "content_script.js"
+        ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [ "katex/fonts/*" ],
+      "matches": [ "https://notebooklm.google.com/*" ]
+    }
+  ]
+}
