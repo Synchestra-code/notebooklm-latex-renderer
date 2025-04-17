@@ -18,37 +18,49 @@ Additionally, it applies a subtle light gray background to the rendered formulas
 
 ## Installation (from source)
 
-1.  **Download/Clone:** Obtain the extension files.
-2.  **Download KaTeX:**
+1.  **Download/Clone:** Obtain the extension files (e.g., by cloning the repository or downloading a source code archive).
+
+2.  **Check for KaTeX Files:** Look inside the downloaded/cloned folder. Does a subfolder named `katex` already exist and contain files like `katex.min.js`, `katex.min.css`, and a `fonts` subfolder?
+    * **If YES:** The necessary KaTeX files are already included in the repository. You can **skip Step 3**.
+    * **If NO:** You need to download KaTeX manually as described in Step 3.
+
+3.  **Download KaTeX (Only if not already included):**
     * Go to the [KaTeX Releases page](https://github.com/KaTeX/KaTeX/releases).
     * Download the latest release archive (e.g., `katex.zip` or `katex.tar.gz`).
     * Extract the archive.
-3.  **Organize Files:**
+
+4.  **Organize Files (Only if KaTeX was downloaded in Step 3):**
     * Create a `katex` subfolder inside the main extension directory (`notebooklm-latex-renderer/`).
     * Copy the following files/folders from the extracted KaTeX archive into the `katex` subfolder:
         * `katex.min.css`
         * `katex.min.js`
         * `contrib/auto-render.min.js` (Copy this file directly into `katex/`, renaming it or adjusting the manifest path if needed - the current manifest expects it as `katex/auto-render.min.js`)
         * The entire `fonts` folder.
-    * Ensure your final structure looks like this:
-        ```
-        notebooklm-latex-renderer/
-        ├── manifest.json
-        ├── content_script.js
-        ├── custom_styles.css
-        └── katex/
-            ├── katex.min.css
-            ├── katex.min.js
-            ├── auto-render.min.js
-            └── fonts/
-                ├── KaTeX_AMS-Regular.woff2
-                ├── ... (all other .woff2 files)
-        ```
-4.  **Load in Chrome:**
+        * **Important:** Also copy the KaTeX `LICENSE` file (or similar, e.g., `COPYING`) into this `katex` directory or the project root.
+
+5.  **Verify File Structure:** Ensure your final structure looks like this (the `katex` folder should be present either from the download or because it was already in the repository):
+    ```
+    notebooklm-latex-renderer/
+    ├── manifest.json
+    ├── content_script.js
+    ├── custom_styles.css
+    ├── README.md
+    ├── (Optional: LICENSE file for this project)
+    └── katex/
+        ├── katex.min.css
+        ├── katex.min.js
+        ├── auto-render.min.js
+        ├── LICENSE         <-- KaTeX License file
+        └── fonts/
+            ├── KaTeX_AMS-Regular.woff2
+            ├── ... (all other .woff2 files)
+    ```
+
+6.  **Load in Chrome:**
     * Open Chrome and navigate to `chrome://extensions/`.
     * Enable "Developer mode" (toggle switch usually in the top right).
     * Click "Load unpacked".
-    * Select the main `notebooklm-latex-renderer` folder.
+    * Select the main `notebooklm-latex-renderer` folder (which now definitely contains the `katex` subfolder).
 
 ## Usage
 
@@ -61,10 +73,14 @@ Once installed and enabled, simply navigate to `https://notebooklm.google.com/`.
 
 ## Dependencies
 
-* [KaTeX](https://katex.org/) - Included in the `katex/` directory.
+* [KaTeX](https://katex.org/) - Included in the `katex/` directory. Distributed under the MIT License.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit pull requests or open issues. Paypal: paypal.me/synchestracode
+Contributions are welcome! Please feel free to submit pull requests or open issues. (Optional: Add more specific contribution guidelines if desired).
 
+## License
 
+This project itself is licensed under the MIT License - see the (optional) `LICENSE` file for details.
+
+This project includes the KaTeX library (in the `katex/` directory), which is distributed under its own MIT License. You must retain the KaTeX copyright notice and license file when distributing this extension, as required by the KaTeX license.
