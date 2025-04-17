@@ -65,6 +65,6 @@ Once installed and enabled, simply navigate to `https://notebooklm.google.com/`.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit pull requests or open issues. Paypal: samuelrettig@gmail.com
+Contributions are welcome! Please feel free to submit pull requests or open issues. Paypal: paypal.me/synchestracode
 
 
