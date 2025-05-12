@@ -1,11 +1,9 @@
 {
   "manifest_version": 3,
   "name": "NotebookLM LaTeX Renderer",
-  "version": "1.1", // Version erhöht
-  "description": "Rendert automatisch LaTeX-Formeln ($...$ und $$...$$) auf notebooklm.google.com mithilfe von KaTeX und hebt sie hervor.",
-  // Der "icons"-Abschnitt wurde entfernt, da keine Icons vorhanden sind.
-  // Du kannst ihn später wieder hinzufügen, wenn du Icons erstellst.
-  // "icons": {
+  "version": "1.2",
+  "description": "Rendert automatisch LaTeX-Formeln ($...$, $$...$$, \\ce{...}) auf notebooklm.google.com mithilfe von KaTeX und hebt sie hervor.",
+  // "icons": { // Icons sind immer noch optional
   //   "48": "icons/icon48.png",
   //   "128": "icons/icon128.png"
   // },
@@ -13,12 +11,14 @@
     {
       "matches": ["https://notebooklm.google.com/*"],
       "css": [
-        "katex/katex.min.css", // KaTeX Standard-Styles
-        "custom_styles.css"    // Eigene Styles hinzufügen
+        "katex/katex.min.css",
+        "custom_styles.css"
         ],
       "js": [
         "katex/katex.min.js",
         "katex/auto-render.min.js",
+        // KORRIGIERTER PFAD HIER:
+        "katex/mhchem.min.js", // Nicht mehr "katex/contrib/mhchem.min.js"
         "content_script.js"
         ],
       "run_at": "document_idle"
@@ -31,3 +31,4 @@
     }
   ]
 }
+
