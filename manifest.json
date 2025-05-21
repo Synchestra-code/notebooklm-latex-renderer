@@ -18,6 +18,7 @@
         ],
       "js": [
         "katex/katex.min.js",
+        "katex/mhchem.min.js",
         "katex/auto-render.min.js",
         "content_script.js"
         ],
@@ -29,5 +30,12 @@
       "resources": [ "katex/fonts/*" ],
       "matches": [ "https://notebooklm.google.com/*" ]
     }
-  ]
+  ],
+  "permissions": [
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "LaTeX Display Options"
+  }
 }

@@ -3,14 +3,27 @@
  * Highlights rendered KaTeX formulas.
  */
 
-/* Ziel: Alle von KaTeX gerenderten Formel-Container (inline und display) */
-.katex {
-  background-color: #f0f0f0; /* Hellgrauer Hintergrund */
-  padding: 0.1em 0.3em; /* Etwas Innenabstand (oben/unten | links/rechts) */
-  border-radius: 4px;   /* Leicht abgerundete Ecken */
-  display: inline-block; /* Stellt sicher, dass Padding korrekt angewendet wird, auch für Inline-Elemente */
-  vertical-align: middle; /* Verbessert die Ausrichtung von Inline-Formeln mit umgebendem Text */
-  line-height: normal; /* Verhindert unerwünschte Zeilenhöhenänderungen */
+/* Apply to both display and inline KaTeX elements */
+.katex, .katex-display {
+  /* Use var() with a fallback to transparent if the variable isn't set */
+  background-color: var(--latex-background-color, transparent);
+  padding: 0.2em 0.1em; /* Add some padding */
+  border-radius: 3px;   /* Slightly rounded corners */
+  transition: background-color 0.3s ease; /* Smooth transition for color changes */
+  /* Retaining some potentially useful properties from the old .katex rule */
+  display: inline-block; /* Ensures padding is applied correctly for inline */
+  vertical-align: middle; /* Improves alignment of inline formulas */
+  line-height: normal; /* Prevents unwanted line height changes */
+}
+
+/* Ensure display mode LaTeX takes full width if needed, and respects background */
+.katex-display {
+  display: block; /* KaTeX default, but good to be explicit */
+  /* text-align: center; /* Optional: if you want display math centered */
+  /* Ensure padding and border-radius from the above rule also apply if not overridden */
+  padding: 0.5em; /* More padding for display, as per original commented out style */
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
 }
 
 /* Optional: Spezifische Anpassungen nur für Display-Formeln (die in eigenen Zeilen stehen) */
@@ -20,4 +33,3 @@
   /* margin-top: 0.5em; */        /* Abstand nach oben */
   /* margin-bottom: 0.5em; */     /* Abstand nach unten */
 /* } */
-

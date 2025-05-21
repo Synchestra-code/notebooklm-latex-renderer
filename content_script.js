@@ -51,6 +51,9 @@ const CHAT_CONTAINER_SELECTOR = 'body'; // Starte breit, spezifiziere später!
 
 // --- MutationObserver-Setup ---
 
+let debounceTimeout;
+const DEBOUNCE_DELAY = 300; // milliseconds
+
 // Funktion, die bei DOM-Änderungen aufgerufen wird
 const mutationCallback = (mutationsList, observer) => {
     let needsRender = false;
@@ -82,12 +85,11 @@ const mutationCallback = (mutationsList, observer) => {
 
     // Führe das Rendering aus, wenn relevante Änderungen erkannt wurden
     if (needsRender) {
-        console.log("NotebookLM LaTeX Renderer: Änderungen erkannt, starte Rendering...");
-        // Rendere den gesamten beobachteten Bereich neu.
-        // TODO: Für bessere Performance könnte man hier "debouncing" einbauen,
-        //       um zu verhindern, dass die Funktion bei vielen schnellen Änderungen
-        //       ständig aufgerufen wird.
-         renderLatexInNode(document.querySelector(CHAT_CONTAINER_SELECTOR) || document.body);
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+            console.log("NotebookLM LaTeX Renderer: Debounced rendering triggered for container:", CHAT_CONTAINER_SELECTOR);
+            renderLatexInNode(document.querySelector(CHAT_CONTAINER_SELECTOR) || document.body);
+        }, DEBOUNCE_DELAY);
     }
 };
 
@@ -118,6 +120,31 @@ function startObserver() {
         setTimeout(startObserver, 2000);
     }
 }
+
+// Function to apply styles based on settings from chrome.storage
+function applyLatexStyles(settings) {
+    if (settings && settings.latexBgColorSetting) {
+        // Set a CSS variable on the root element (<html>) for global access
+        document.documentElement.style.setProperty('--latex-background-color', settings.latexBgColorSetting);
+         console.log('NotebookLM LaTeX Renderer: Applied background color', settings.latexBgColorSetting);
+    } else {
+        // Optional: Clear the variable if setting is removed or invalid
+        document.documentElement.style.removeProperty('--latex-background-color');
+         console.log('NotebookLM LaTeX Renderer: Cleared background color or no setting found.');
+    }
+}
+
+// Initial application of styles when the content script loads
+chrome.storage.sync.get(['latexBgColorSetting'], (result) => {
+    applyLatexStyles(result);
+});
+
+// Listen for changes in storage
+chrome.storage.onChanged.addListener((changes, namespace) => {
+    if (namespace === 'sync' && changes.latexBgColorSetting) {
+        applyLatexStyles({ latexBgColorSetting: changes.latexBgColorSetting.newValue });
+    }
+});
 
 // Stelle sicher, dass KaTeX und die Auto-Render-Funktion geladen sind,
 // bevor der Observer gestartet wird.
