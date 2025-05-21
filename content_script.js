@@ -6,31 +6,40 @@
 
 console.log("NotebookLM LaTeX Renderer: Content script geladen.");
 
+let debounceTimer; // For debouncing rendering calls
+
 /**
  * Funktion zum Ausführen des KaTeX Auto-Renderings für ein bestimmtes Element.
  * @param {Node} targetNode Das Wurzelelement, in dem nach LaTeX gesucht werden soll.
  */
 function renderLatexInNode(targetNode) {
+    if (!targetNode) {
+        console.warn("NotebookLM LaTeX Renderer: renderLatexInNode aufgerufen mit ungültigem targetNode.");
+        return;
+    }
     if (typeof renderMathInElement === 'function') {
-        try {
-            // Konfiguration für KaTeX Auto-Render
-            // Erkennt $...$ und $$...$$ sowie \(...\) und \[...\]
-            renderMathInElement(targetNode, {
-                delimiters: [
-                    {left: "$$", right: "$$", display: true}, // Display Math
-                    {left: "$", right: "$", display: false},   // Inline Math
-                    {left: "\\(", right: "\\)", display: false}, // Inline Math (alternative)
-                    {left: "\\[", right: "\\]", display: true}   // Display Math (alternative)
-                ],
-                // Ignoriert bestimmte Tags, um Probleme zu vermeiden
-                ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"],
-                // Verhindert, dass Fehler das gesamte Skript stoppen
-                throwOnError: false
-            });
-             console.log("NotebookLM LaTeX Renderer: KaTeX Auto-Render aufgerufen für", targetNode);
-        } catch (error) {
-            console.error("NotebookLM LaTeX Renderer: Fehler beim KaTeX Rendering:", error);
-        }
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            try {
+                // Konfiguration für KaTeX Auto-Render
+                // Erkennt $...$ und $$...$$ sowie \(...\) und \[...\]
+                renderMathInElement(targetNode, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true}, // Display Math
+                        {left: "$", right: "$", display: false},   // Inline Math
+                        {left: "\\(", right: "\\)", display: false}, // Inline Math (alternative)
+                        {left: "\\[", right: "\\]", display: true}   // Display Math (alternative)
+                    ],
+                    // Ignoriert bestimmte Tags, um Probleme zu vermeiden
+                    ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"],
+                    // Verhindert, dass Fehler das gesamte Skript stoppen
+                    throwOnError: false
+                });
+                console.log("NotebookLM LaTeX Renderer: KaTeX Auto-Render aufgerufen für", targetNode);
+            } catch (error) {
+                console.error("NotebookLM LaTeX Renderer: Fehler beim KaTeX Rendering:", error);
+            }
+        }, 300); // 300ms Verzögerung
     } else {
         console.error("NotebookLM LaTeX Renderer: KaTeX oder Auto-Render-Funktion nicht gefunden.");
     }
@@ -47,49 +56,62 @@ function renderLatexInNode(targetNode) {
  * - Für den Anfang versuchen wir es mit 'body', um sicherzustellen, dass alles erfasst wird,
  * aber eine spezifischere Auswahl ist für die Performance besser.
  */
-const CHAT_CONTAINER_SELECTOR = 'body'; // Starte breit, spezifiziere später!
+const CHAT_CONTAINER_SELECTOR = '[role="main"]';
 
 // --- MutationObserver-Setup ---
 
 // Funktion, die bei DOM-Änderungen aufgerufen wird
 const mutationCallback = (mutationsList, observer) => {
-    let needsRender = false;
     for (const mutation of mutationsList) {
-        // Prüfen, ob Knoten hinzugefügt wurden
         if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
             mutation.addedNodes.forEach(node => {
-                // Prüfen, ob der neue Knoten selbst oder seine Kinder Text enthalten,
-                // der potenziell LaTeX sein könnte ($ oder \).
-                // Wir rendern vorsichtshalber bei jeder relevanten Änderung.
-                 if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    // Prüfen, ob der neue Knoten selbst oder seine Kinder Text enthalten,
+                    // der potenziell LaTeX sein könnte ($ oder \).
                     if (node.textContent && (node.textContent.includes('$') || node.textContent.includes('\\'))) {
-                         needsRender = true;
-                         // Wir könnten hier gezielt nur 'node' rendern, aber das
-                         // Neurendern des gesamten Containers ist mit auto-render oft einfacher.
-                         // renderLatexInNode(node.parentElement || document.body); // Gezielter Ansatz
+                        console.log("NotebookLM LaTeX Renderer: childList Mutation - ElementNode hinzugefügt, rendere:", node);
+                        renderLatexInNode(node);
                     }
-                 }
+                }
             });
+        } else if (mutation.type === 'characterData') {
+            if (mutation.target.textContent && (mutation.target.textContent.includes('$') || mutation.target.textContent.includes('\\'))) {
+                if (mutation.target.parentElement) {
+                    console.log("NotebookLM LaTeX Renderer: characterData Mutation - Text geändert, rendere parentElement:", mutation.target.parentElement);
+                    renderLatexInNode(mutation.target.parentElement);
+                } else {
+                     // Fallback, wenn kein parentElement vorhanden ist (z.B. Textknoten direkt im Shadow DOM oder ähnliches)
+                     // In diesem Fall versuchen wir, den gesamten Container neu zu rendern, aber debounced.
+                    console.log("NotebookLM LaTeX Renderer: characterData Mutation - Text geändert, aber kein parentElement. Rendere den Chat-Container.");
+                    renderLatexInNode(document.querySelector(CHAT_CONTAINER_SELECTOR) || document.body);
+                }
+            }
         }
-        // Optional: Auf Änderungen an Textinhalten achten (kann Performance kosten!)
-        // else if (mutation.type === 'characterData') {
-        //    if (mutation.target.textContent && (mutation.target.textContent.includes('$') || mutation.target.textContent.includes('\\'))) {
-        //        needsRender = true;
-        //        // renderLatexInNode(mutation.target.parentElement || document.body); // Gezielter Ansatz
-        //    }
-        // }
-    }
-
-    // Führe das Rendering aus, wenn relevante Änderungen erkannt wurden
-    if (needsRender) {
-        console.log("NotebookLM LaTeX Renderer: Änderungen erkannt, starte Rendering...");
-        // Rendere den gesamten beobachteten Bereich neu.
-        // TODO: Für bessere Performance könnte man hier "debouncing" einbauen,
-        //       um zu verhindern, dass die Funktion bei vielen schnellen Änderungen
-        //       ständig aufgerufen wird.
-         renderLatexInNode(document.querySelector(CHAT_CONTAINER_SELECTOR) || document.body);
     }
 };
+
+// Funktion zum direkten, nicht-debounced Rendern für den initialen Inhalt.
+function initialRender(targetNode) {
+    if (typeof renderMathInElement === 'function') {
+        try {
+            renderMathInElement(targetNode, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false},
+                    {left: "\\[", right: "\\]", display: true}
+                ],
+                ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"],
+                throwOnError: false
+            });
+            console.log("NotebookLM LaTeX Renderer: Initiales KaTeX Auto-Render aufgerufen für", targetNode);
+        } catch (error) {
+            console.error("NotebookLM LaTeX Renderer: Fehler beim initialen KaTeX Rendering:", error);
+        }
+    } else {
+        console.error("NotebookLM LaTeX Renderer: KaTeX oder Auto-Render-Funktion nicht gefunden für initiales Rendering.");
+    }
+}
 
 // Funktion zum Starten des Observers
 function startObserver() {
@@ -97,8 +119,8 @@ function startObserver() {
 
     if (targetNode) {
         console.log("NotebookLM LaTeX Renderer: Ziel-Container gefunden:", CHAT_CONTAINER_SELECTOR, ". Starte Observer und initiales Rendering.");
-        // 1. Initiales Rendering für bereits vorhandenen Inhalt
-        renderLatexInNode(targetNode);
+        // 1. Initiales Rendering für bereits vorhandenen Inhalt (direkt, nicht debounced)
+        initialRender(targetNode);
 
         // 2. Observer konfigurieren
         const observer = new MutationObserver(mutationCallback);
